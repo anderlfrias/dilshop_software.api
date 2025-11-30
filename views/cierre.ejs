@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    /*
+      height: 11.67in;
+      width: 8.27in;
+      Corresponde con el tamaño de una hoja A4 en formato horizontal
+    */
+    .container {
+      height: 8.5in;
+      width: 10.9in;
+      /* border: 1px solid black; */
+      padding: 0.5in;;
+    }
+
+    .header {
+      width: 100%;
+      text-align: center;
+      font-size: large;
+    }
+
+    .title {
+      font-size: x-large;
+      font-weight: bold;
+      margin: 12px 0;
+    }
+
+    .body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      /* border: 1px solid black; */
+    }
+
+    #table-pagos {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    #table-pagos-resumen {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    #table-ventas-resumen {
+      width: 3in;
+    }
+
+    #table-ventas-resumen th {
+      text-align: start;
+      font-weight: normal;
+    }
+
+    table th, td {
+      padding: 4px;
+      text-align: end;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <p>Restaurante - Siglo 21</p>
+      <p>Grupo Medico Unido S A</p>
+      <p>El Hogar de tu Salud</p>
+      <p>C/ Duarte Esq. La Cruz, San Fracisco</p>
+      <p>809-588-1717</p>
+      <p>101605812</p>
+      <p class="title">Cuadre de Caja</p>
+    </div>
+
+    <div class="body">
+      <div>
+        <p style="margin-bottom: 6px;"><strong>Fecha: </strong><%= fecha %></p>
+        <p style="margin-bottom: 12px;">Cajer@:<strong> <%= user %></strong></p>
+        <div>
+          <table id="table-ventas-resumen">
+            <tr>
+              <th>Efectivo inicial en caja:</th>
+              <td><%= efectivoInicial %></td>
+            </tr>
+            <tr>
+              <th>Ventas al Contado:</th>
+              <td><%= ventasAlContado %></td>
+            </tr>
+            <tr>
+              <th>Ventas al Credito:</th>
+              <td><%= totalACredito %></td>
+            </tr>
+            <tr>
+              <th>NC Aplicadas:</th>
+              <td>$0.00</td>
+            </tr>
+            <tr>
+              <th>Puntos Canjeados:</th>
+              <td>$0.00</td>
+            </tr>
+            <tr>
+              <th>Cobros:</th>
+              <td>$0.00</td>
+            </tr>
+            <tr>
+              <th>Ley Camareria:</th>
+              <td>$0.00</td>
+            </tr>
+            <tr>
+              <th>Delivery:</th>
+              <td><%= delivery %></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <div style="display: flex; gap: 10px; margin-bottom: 12px; justify-content: space-between;">
+          <div>
+            <p><strong>Fecha de Apertura:</strong></p>
+            <p><%= fechaApertura %></p>
+          </div>
+          <div>
+            <p><strong>Fecha de Cierre:</strong></p>
+            <p><%= fechaCierre %></p>
+          </div>
+        </div>
+        <div style="margin-bottom: 24px;">
+          <table id="table-pagos">
+            <col>
+            <colgroup span="2"></colgroup>
+            <colgroup span="2"></colgroup>
+            <tr>
+              <th scope="col"></th>
+              <th scope="col">Sistema</th>
+              <th scope="col">Recibido</th>
+              <th scope="col">Diferencia</th>
+            </tr>
+            <tr>
+              <th scope="row">Efectivo:</th>
+              <td><%= efectivoEnCaja %></td>
+              <td><%= recibido.efectivo %></td>
+              <td><%= diferencia.efectivo %></td>
+            </tr>
+            <tr>
+              <th scope="row">Cheques:</th>
+              <td><%= totalConCheque %></td>
+              <td><%= recibido.cheque %></td>
+              <td><%= diferencia.cheque %></td>
+            </tr>
+            <tr>
+              <th scope="row">Tarjeta:</th>
+              <td><%= totalConTarjeta %></td>
+              <td><%= recibido.tarjeta %></td>
+              <td><%= diferencia.tarjeta %></td>
+            </tr>
+            <tr>
+              <th scope="row">Transferencia:</th>
+              <td><%= totalConTransferencia %></td>
+              <td><%= recibido.transferencia %></td>
+              <td><%= diferencia.transferencia %></td>
+            </tr>
+          </table>
+        </div>
+
+        <div>
+          <table id="table-pagos-resumen">
+            <tr>
+              <th>Total Sistema:</th>
+              <td><%= totalSistema %></td>
+            </tr>
+            <tr>
+              <th>Gastos:</th>
+              <td>$0.00</td>
+            </tr>
+            <tr>
+              <th>Total en Caja:</th>
+              <td><%= totalSistema %></td>
+            </tr>
+            <tr>
+              <th>Total Recibido:</th>
+              <td><%= recibido.total %></td>
+            </tr>
+            <tr>
+              <th>Diferencia:</th>
+              <td><%= diferencia.total %></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

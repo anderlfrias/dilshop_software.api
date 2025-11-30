@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    /* Normlizar estilos */
+    @font-face {
+      font-family: 'Lato';
+      src: url('./fonts/Lato/Lato-Regular.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 10px;
+      line-height: 1.5em;
+      font-weight: 300;
+    }
+
+
+    .invoice-container {
+      width: 256px;
+      max-width: 256px;
+      /* border: 1px solid black; */
+    }
+
+    .invoice-content {
+      padding: 8px;
+    }	
+
+    .header {
+      text-align: center;
+    }
+
+    .table-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .table-item {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    /* .table-item-precio {
+      text-align: right;
+    } */
+
+    .table-items-desc {
+      width: 100%;
+    }
+
+    .table-footer {
+      display: flex;
+      flex-direction: column;
+      align-items: end;
+    }
+
+    div.line{
+      border-bottom: 0.2px solid rgba(0, 0, 0, 0.794);
+      margin: 5px 0;
+    }
+
+    .table-footer-item {
+      display: flex;
+      gap: 10px;
+    }
+
+    .table-footer-price {
+      text-align: right;
+      min-width: 70px;
+    }
+
+    .invoice-footer {
+      margin: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="invoice-container">
+    <div class="invoice-content">
+      <div class="header" style="text-align: center;">
+        <p>Restaurante - Siglo 21</p>
+        <p>Grupo Medico Unido S A</p>
+        <p>El Hogar de tu Salud</p>
+        <p>C/ Duarte Esq. La Cruz, San Fracisco</p>
+        <p>809-588-1717</p>
+        <p>101605812</p>
+      </div>
+
+      <div class="body">
+        <div class="line"></div>
+        <p><%= tipoFactura %></p>
+        <p>NCF: <%= ncf %></p>
+        <div class="line"></div>
+        <p>Factura No. <%= numero %></p>
+        <p>Fecha:  <%= fecha %> </p>
+        <p>Cliente: <%= cliente %></p>
+        <p>RNC: <%= rnc %></p>
+        <div class="line"></div>
+        <p style="text-align: center;" >Factura a Credito</p>
+        <div class="line"></div>
+        
+        <div class="table">
+          <div class="table-header">
+            <p>Cant.</p>
+            <p style="width: 100%;">Descripcion / Precio</p>
+            <p>Subtotal</p>
+          </div>
+          <div class="line"></div>
+          <% productos.forEach(function(producto) { %>
+            <div class="table-item">
+              <p><%= producto.cantidad %></p>
+              <div class="table-items-desc">
+                <p><%= producto.nombre %></p>
+                <p class="table-item-precio"><%= producto.precio.toFixed(2) %></p>
+              </div>
+              <p><%= (producto.cantidad * producto.precio).toFixed(2) %></p>
+            </div>
+          <% }); %>
+          <div class="line"></div>
+
+          <div class="table-footer">
+            <div class="table-footer-item">
+              <p>Subtotal:</p>
+              <p class="table-footer-price"><%= subTotal.toFixed(2) %></p>
+            </div>
+            <div class="table-footer-item">
+              <p>Delivery:</p>
+              <p class="table-footer-price"><%= delivery.toFixed(2) %></p>
+            </div>
+            <div class="table-footer-item">
+              <p>Descuento:</p>
+              <p class="table-footer-price">0.00</p>
+            </div>
+            <div class="table-footer-item">
+              <p>ITBIS:</p>
+              <p class="table-footer-price"><%= impuesto.toFixed(2) %></p>
+            </div>
+            <div class="table-footer-item">
+              <p>Total:</p>
+              <p class="table-footer-price"><%= total.toFixed(2) %></p>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <% pagos.forEach(function(pago) { %>
+            <div>
+              <p><%= pago.metodoPago %>: <%= parseFloat(pago.recibido)?.toFixed(2) %></p>
+            </div>
+          <% }); %>
+        </div>
+        
+        <div style="margin-bottom: 12px;">
+          <div>
+            <p>Firma: __________________________</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    
+    
+    <div style="margin: 12px 10px 0; ">
+      <p>Le Atendió: <%= usuario %></p>
+    </div>
+    <div class="invoice-footer">
+      <div class="line"></div>
+      <p>Gracias por su compra!</p>
+      <div class="line"></div>
+    </div>
+  </div>
+</body>
+</html>
