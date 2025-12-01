@@ -1,10 +1,10 @@
 module.exports = {
   apps : [{
-    name   : "restaurante.api",
-    script : "./app.js",
+    name   : 'dilshop.api',
+    script : './app.js',
     autorestart: true,
     env: {
-      PORT: 3001,
+      PORT: 3005,
     }
   }]
 }
