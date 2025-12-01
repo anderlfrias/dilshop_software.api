@@ -50,7 +50,7 @@ module.exports.datastores = {
     ***************************************************************************/
     adapter: 'sails-mysql',
     // url: 'mysql://andersonfrias:12345@172.20.1.12:3306/restaurante_dev', // Base de datos de desarrollo
-    url: 'mysql://anderlfrias:SRVRcmsiglo21@172.20.5.20:3306/restaurante_prod', // Base de datos de produccion
+    // url: 'mysql://anderlfrias:SRVRcmsiglo21@172.20.5.20:3306/restaurante_prod', // Base de datos de produccion
 
     // url: 'mysql://anderlfrias:SRVRcmsiglo21@172.20.5.20:3306/restaurante_dev', // Base de datos de desarrollo servidor local
     // url: 'mysql://anderlfrias:mysql.local.123456@localhost:3306/restaurante_dev', // Base de datos de desarrollo mi computadora
@@ -59,14 +59,11 @@ module.exports.datastores = {
     //  url: 'mysql://root:comequesomaduroconpicapollo@localhost:3306/restaurante_dev', // Base de datos de desarrollo mi computadora
     //url: 'mysql://root:comequesomaduroconpicapollo@localhost:3306/restaurante_dev', // Base de datos de desarrollo mi computadora
 
-    //  url: 'mysql://anderlfrias:SRVRcmsiglo21@localhost:3306/restaurante_prod', // Base de datos de produccion
+    url: 'mysql://dilshop:12345@localhost:3306/dilshop_dev', // Base de datos de produccion
   },
   activity: {
     adapter: 'sails-mongo',
-    // url: 'mongodb://0.0.0.0:27017/restaurante_dev',
-
-
-    url: 'mongodb://0.0.0.0:27017/restaurante_prod',
+    url: 'mongodb://0.0.0.0:27017/dilshop_activity',
   }
 
 

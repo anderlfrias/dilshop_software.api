@@ -22,7 +22,6 @@ let browserPromise = null;
 const getBrowser = async () => {
   if (!browserPromise) {
     browserPromise = puppeteer.launch({
-      headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'], // Mejora el rendimiento
     });
   }
@@ -429,10 +428,10 @@ module.exports = {
         }
         // Construir la consulta SQL con el tipoComprobante como parte de la cadena de consulta
         const query = `
-          SELECT * FROM ncf 
-          WHERE deleted = false AND estado = "abierto" AND tipoComprobante = $1 
-          ORDER BY fecha ASC 
-          LIMIT 1 
+          SELECT * FROM ncf
+          WHERE deleted = false AND estado = "abierto" AND tipoComprobante = $1
+          ORDER BY fecha ASC
+          LIMIT 1
           FOR UPDATE
         `;
 
@@ -889,7 +888,7 @@ module.exports = {
       }
 
       const query = `
-        SELECT 
+        SELECT
           f.id AS factura_id,
           f.fecha,
           f.ncf,
@@ -1045,7 +1044,7 @@ module.exports = {
       const token = req.headers.authorization;
 
       const query = `
-        SELECT 
+        SELECT
           f.id AS factura_id,
           f.fecha,
           f.ncf,
