@@ -1,5 +1,5 @@
 
-const URL_XUSER = 'https://xuser-api.cmsiglo21.app/api';
+const URL_XUSER = 'https://anx-api.anderlfrias.com/api';
 
 module.exports = {
 
