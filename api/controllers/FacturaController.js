@@ -11,6 +11,8 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const ejs = require('ejs');
 
+const REQUIERE_NCF = false;
+
 // Precompilar plantillas EJS al iniciar la aplicación
 const templatePathInvoice = 'views/invoice.ejs';
 const templatePathCredit = 'views/invoice-credit.ejs';
@@ -22,6 +24,7 @@ let browserPromise = null;
 const getBrowser = async () => {
   if (!browserPromise) {
     browserPromise = puppeteer.launch({
+      headless: 'new',
       args: ['--no-sandbox', '--disable-setuid-sandbox'], // Mejora el rendimiento
     });
   }
@@ -420,28 +423,35 @@ module.exports = {
       }
 
       await Factura.getDatastore().transaction(async (db, proceed) => {
-        // Generar NCF
-        const tipoComprobante = TIPO_FACTURA_MAP[factura.tipoFactura];
 
-        if (!tipoComprobante) {
-          return await proceed(new Error('El tipo de comprobante no es válido'));
+        if (REQUIERE_NCF) {
+          // Generar NCF
+          const tipoComprobante = TIPO_FACTURA_MAP[factura.tipoFactura];
+
+          if (!tipoComprobante) {
+            return await proceed(new Error('El tipo de comprobante no es válido'));
+          }
+          // Construir la consulta SQL con el tipoComprobante como parte de la cadena de consulta
+          const query = `
+            SELECT * FROM ncf
+            WHERE deleted = false AND estado = "abierto" AND tipoComprobante = $1
+            ORDER BY fecha ASC
+            LIMIT 1
+            FOR UPDATE
+          `;
+
+          // // Ejecutar la consulta
+          await NCF.getDatastore().sendNativeQuery(query, [tipoComprobante]).usingConnection(db);
+          const nextNcfResp = await sails.helpers.getNextNcf(tipoComprobante, db);
+          if (nextNcfResp.success) {
+            factura.ncf = nextNcfResp.ncf;
+          } else {
+            return await proceed(new Error(nextNcfResp.message));
+          }
         }
-        // Construir la consulta SQL con el tipoComprobante como parte de la cadena de consulta
-        const query = `
-          SELECT * FROM ncf
-          WHERE deleted = false AND estado = "abierto" AND tipoComprobante = $1
-          ORDER BY fecha ASC
-          LIMIT 1
-          FOR UPDATE
-        `;
 
-        // // Ejecutar la consulta
-        await NCF.getDatastore().sendNativeQuery(query, [tipoComprobante]).usingConnection(db);
-        const nextNcfResp = await sails.helpers.getNextNcf(tipoComprobante, db);
-        if (nextNcfResp.success) {
-          factura.ncf = nextNcfResp.ncf;
-        } else {
-          return await proceed(new Error(nextNcfResp.message));
+        if (!REQUIERE_NCF) {
+          factura.ncf = '';
         }
 
         // Crear CxC si es a crédito

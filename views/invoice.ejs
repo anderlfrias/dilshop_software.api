@@ -43,6 +43,7 @@
       display: flex;
       justify-content: space-between;
       gap: 10px;
+      margin-bottom: 10px;
     }
 
     .table-item {
@@ -91,23 +92,21 @@
   <div class="invoice-container">
     <div class="invoice-content">
       <div class="header" style="text-align: center;">
-        <p>Restaurante - Siglo 21</p>
-        <p>Grupo Medico Unido S A</p>
-        <p>El Hogar de tu Salud</p>
-        <p>C/ Duarte Esq. La Cruz, San Fracisco</p>
-        <p>809-588-1717</p>
-        <p>101605812</p>
+        <img src="/img/dilshop-logo.png" width="150" height="auto" />
+        <p>DILSHOP 056</p>
+        <p>San Felipe Abajo, Pimente, Prov. Duarte, Rep. Dom.</p>
+        <p>(829) 592-7474</p>
       </div>
 
       <div class="body">
-        <div class="line"></div>
+        <!-- <div class="line"></div>
         <p><%= tipoFactura %></p>
         <p>NCF: <%= ncf %></p>
-        <div class="line"></div>
+        <div class="line"></div> -->
         <p>Factura No. <%= numero %></p>
         <p>Fecha:  <%= fecha %> </p>
         <p>Cliente: <%= cliente %></p>
-        <p>RNC: <%= rnc %></p>
+        <!-- <p>RNC: <%= rnc %></p> -->
         <div class="line"></div>
         <p style="text-align: center;" >FACTURA <%= modoFactura %></p>
         <div class="line"></div>

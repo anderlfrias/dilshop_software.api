@@ -51,10 +51,10 @@ module.exports = {
         }
 
         const registroCajaCreado = await RegistroCaja.create(registroCaja).fetch()
-        .catch(err => {
-          sails.log.error(err);
-          return proceed(new Error('Ocurrió un error al crear el registro de caja'));
-        });
+          .catch(err => {
+            sails.log.error(err);
+            return proceed(new Error('Ocurrió un error al crear el registro de caja'));
+          });
 
         if (!registroCajaCreado) {
           return await proceed(new Error('Ocurrio un error al crear el registro de caja'));
@@ -340,7 +340,7 @@ module.exports = {
       let registroCajaActualizada = {};
       const id = req.params.id;
 
-      if(!id) {
+      if (!id) {
         return res.badRequest({ err: 'El id es requerido' });
       }
 
@@ -414,7 +414,7 @@ module.exports = {
       let registroCajaActualizada = {};
       const id = req.params.id;
 
-      if(!id) {
+      if (!id) {
         return res.badRequest({ err: 'El id es requerido' });
       }
       await Caja.getDatastore().transaction(async (db, proceed) => {
@@ -538,8 +538,8 @@ module.exports = {
       };
 
       const getTotalFacturasCreditos = (bills) => {
-        if (!bills) {return 0;}
-        if (bills.length === 0) {return 0;}
+        if (!bills) { return 0; }
+        if (bills.length === 0) { return 0; }
         const total = bills.reduce((acc, bill) => {
           if (bill.isCredit) {
             return acc + bill.total;
@@ -588,8 +588,8 @@ module.exports = {
       // };
 
       const getTotalDelivery = (bills) => {
-        if (!bills) {return 0;}
-        if (bills.length === 0) {return 0;}
+        if (!bills) { return 0; }
+        if (bills.length === 0) { return 0; }
 
         const total = bills.reduce((acc, bill) => acc + bill.delivery, 0);
         return total;
@@ -630,7 +630,7 @@ module.exports = {
       // console.log('***************************************');
 
       const diferencia = {
-        efectivo: parseFloat(efectivoEnCaja || 0.00) - parseFloat(recibido.efectivo || 0.00) ,
+        efectivo: parseFloat(efectivoEnCaja || 0.00) - parseFloat(recibido.efectivo || 0.00),
         tarjeta: parseFloat(totalConTarjeta || 0.00) - parseFloat(recibido.tarjeta || 0.00),
         cheque: parseFloat(totalConCheque || 0.00) - parseFloat(recibido.cheque || 0.00),
         transferencia: parseFloat(totalConTransferencia || 0.00) - parseFloat(recibido.transferencia || 0.00),
@@ -647,23 +647,23 @@ module.exports = {
         totalACredito: formatCurrency(parseFloat(totalACredito).toFixed(2)),
         totalEnEfectivo: formatCurrency(parseFloat(totalEnEfectivo).toFixed(2)),
         totalConTarjeta: formatCurrency(parseFloat(totalConTarjeta).toFixed(2)),
-        totalConCheque: formatCurrency (parseFloat(totalConCheque).toFixed(2)),
+        totalConCheque: formatCurrency(parseFloat(totalConCheque).toFixed(2)),
         totalConTransferencia: formatCurrency(parseFloat(totalConTransferencia).toFixed(2)),
-        totalFacturado: formatCurrency (parseFloat(totalFacturado).toFixed(2)),
+        totalFacturado: formatCurrency(parseFloat(totalFacturado).toFixed(2)),
         ventasAlContado: formatCurrency(parseFloat(ventasAlContado).toFixed(2)),
-        efectivoEnCaja: formatCurrency (parseFloat(efectivoEnCaja).toFixed(2)),
-        delivery: formatCurrency (parseFloat(delivery).toFixed(2)),
+        efectivoEnCaja: formatCurrency(parseFloat(efectivoEnCaja).toFixed(2)),
+        delivery: formatCurrency(parseFloat(delivery).toFixed(2)),
         recibido: {
-          efectivo: formatCurrency (parseFloat(recibido.efectivo || 0.00).toFixed(2)),
+          efectivo: formatCurrency(parseFloat(recibido.efectivo || 0.00).toFixed(2)),
           tarjeta: formatCurrency(parseFloat(recibido.tarjeta || 0.00).toFixed(2)),
-          cheque: formatCurrency (parseFloat(recibido.cheque || 0.00).toFixed(2)),
+          cheque: formatCurrency(parseFloat(recibido.cheque || 0.00).toFixed(2)),
           transferencia: formatCurrency(parseFloat(recibido.transferencia || 0.00).toFixed(2)),
           total: formatCurrency(parseFloat(totalRecibido || 0.00).toFixed(2))
         },
         diferencia: {
-          efectivo: formatCurrency (parseFloat(diferencia.efectivo).toFixed(2)),
+          efectivo: formatCurrency(parseFloat(diferencia.efectivo).toFixed(2)),
           tarjeta: formatCurrency(parseFloat(diferencia.tarjeta).toFixed(2)),
-          cheque: formatCurrency (parseFloat(diferencia.cheque).toFixed(2)),
+          cheque: formatCurrency(parseFloat(diferencia.cheque).toFixed(2)),
           transferencia: formatCurrency(parseFloat(diferencia.transferencia).toFixed(2)),
           total: formatCurrency(parseFloat(diferencia.total).toFixed(2))
         },
@@ -685,7 +685,7 @@ module.exports = {
         success: true
       });
 
-      const browser = await puppeteer.launch();
+      const browser = await puppeteer.launch({ headless: 'new' });
       const page = await browser.newPage();
 
       // Ruta a la plantilla EJS
