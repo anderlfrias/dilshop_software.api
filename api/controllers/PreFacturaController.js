@@ -886,5 +886,119 @@ module.exports = {
       return res.serverError(error);
     }
   },
+
+  /**
+   * Aplicar descuento global a una PreFactura
+   * POST /api/v1/preFactura/:id/aplicar-descuento-global
+   */
+  aplicarDescuentoGlobal: async function (req, res) {
+    try {
+      const preFacturaId = req.params.id;
+      const { tipo, valor } = req.body;
+
+      // Validar entrada
+      if (!tipo || valor === undefined) {
+        return res.badRequest({
+          err: 'Se requiere tipo y valor del descuento',
+          details: { tipo, valor }
+        });
+      }
+      // console.log('Aplicando descuento:', { tipo, valor, preFacturaId });
+
+      // Llamar al helper con sintaxis correcta de Sails.js
+      const resultado = await sails.helpers.applyGlobalDiscount.with({
+        preFacturaId: preFacturaId,
+        descuento: { tipo, valor }
+      });
+
+      // Generar log
+      const descripcion = `Se aplicó descuento global a la PreFactura ${preFacturaId}.\n- Tipo: ${tipo}\n- Valor: ${valor}\n- Monto: ${resultado.totales.descuentoGlobalMonto}`;
+      await sails.helpers.log({
+        accion: 'PUT',
+        descripcion,
+        origen: 'PreFacturaController.aplicarDescuentoGlobal',
+        token: req.headers.authorization,
+        elementId: preFacturaId,
+        success: true
+      });
+
+      return res.ok(resultado);
+
+    } catch (error) {
+      // Manejar errores específicos del helper
+      if (error.notFound) {
+        return res.notFound(error.notFound);
+      }
+      if (error.invalidState) {
+        return res.badRequest(error.invalidState);
+      }
+      if (error.invalidInput) {
+        return res.badRequest(error.invalidInput);
+      }
+
+      // Generar log de error
+      const descripcion = `Error al aplicar descuento global a PreFactura ${req.params.id}.\n- Error: ${JSON.stringify(error, null, 2)}\n- Body: ${JSON.stringify(req.body, null, 2)}`;
+      await sails.helpers.log({
+        accion: 'PUT',
+        descripcion,
+        origen: 'PreFacturaController.aplicarDescuentoGlobal',
+        token: req.headers.authorization,
+        elementId: req.params.id,
+        success: false
+      });
+
+      return res.serverError(error);
+    }
+  },
+
+  /**
+   * Eliminar descuento global de una PreFactura
+   * DELETE /api/v1/preFactura/:id/eliminar-descuento-global
+   */
+  eliminarDescuentoGlobal: async function (req, res) {
+    try {
+      const preFacturaId = req.params.id;
+
+      // Llamar al helper con sintaxis correcta de Sails.js
+      const resultado = await sails.helpers.removeGlobalDiscount.with({
+        preFacturaId: preFacturaId
+      });
+
+      // Generar log
+      const descripcion = `Se eliminó descuento global de la PreFactura ${preFacturaId}`;
+      await sails.helpers.log({
+        accion: 'DELETE',
+        descripcion,
+        origen: 'PreFacturaController.eliminarDescuentoGlobal',
+        token: req.headers.authorization,
+        elementId: preFacturaId,
+        success: true
+      });
+
+      return res.ok(resultado);
+
+    } catch (error) {
+      // Manejar errores específicos del helper
+      if (error.notFound) {
+        return res.notFound(error.notFound);
+      }
+      if (error.invalidState) {
+        return res.badRequest(error.invalidState);
+      }
+
+      // Generar log de error
+      const descripcion = `Error al eliminar descuento global de PreFactura ${req.params.id}.\n- Error: ${JSON.stringify(error, null, 2)}`;
+      await sails.helpers.log({
+        accion: 'DELETE',
+        descripcion,
+        origen: 'PreFacturaController.eliminarDescuentoGlobal',
+        token: req.headers.authorization,
+        elementId: req.params.id,
+        success: false
+      });
+
+      return res.serverError(error);
+    }
+  },
 };
 
