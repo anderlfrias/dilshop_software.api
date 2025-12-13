@@ -10,6 +10,7 @@ const objId = require('mongodb').ObjectID;
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const ejs = require('ejs');
+const path = require('path');
 
 const REQUIERE_NCF = false;
 
@@ -44,6 +45,19 @@ const TIPO_FACTURA_PARA_IMPRECION = {
   ['factura-credito-fiscal']: 'FACTURA CRÉDITO FISCAL',
   ['regimen-especial']: 'RÉGIMEN ESPECIAL',
   ['gubernamental']: 'GUBERNAMENTAL',
+};
+
+// Función helper para convertir imagen a base64
+const getLogoBase64 = () => {
+  try {
+    const logoPath = path.join(__dirname, '../../assets/images/dilshop-logo.png');
+    const imageBuffer = fs.readFileSync(logoPath);
+    const base64Image = imageBuffer.toString('base64');
+    return `data:image/png;base64,${base64Image}`;
+  } catch (err) {
+    sails.log.error('Error al leer el logo:', err);
+    return '';
+  }
 };
 
 module.exports = {
@@ -1167,6 +1181,7 @@ module.exports = {
         usuario: nameToDisplay,
         totalRecibido,
         cambio: Math.max(totalRecibido - facturaData.total, 0),
+        logoBase64: getLogoBase64(),
       };
 
       // Generar HTML con la plantilla precompilada

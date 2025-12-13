@@ -11,6 +11,20 @@ const objId = require('mongodb').ObjectID;
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const ejs = require('ejs');
+const path = require('path');
+
+// Función helper para convertir imagen a base64
+const getLogoBase64 = () => {
+  try {
+    const logoPath = path.join(__dirname, '../../assets/images/dilshop-logo.png');
+    const imageBuffer = fs.readFileSync(logoPath);
+    const base64Image = imageBuffer.toString('base64');
+    return `data:image/png;base64,${base64Image}`;
+  } catch (err) {
+    sails.log.error('Error al leer el logo:', err);
+    return '';
+  }
+};
 
 module.exports = {
   crear: async function (req, res) {
@@ -834,6 +848,7 @@ module.exports = {
         subTotal,
         impuesto,
         total,
+        logoBase64: getLogoBase64(),
       };
 
       // console.log(datosPreFactura);
