@@ -68,20 +68,22 @@ module.exports = {
         // Base imponible (solo con descuento de línea, sin descuento global)
         const baseImponible = subtotalLinea - descuentoLineaExistente;
 
-        // Recalcular impuesto sobre precio original del producto
-        const tasaImpuesto = linea.impuesto; // Guardar tasa original
-        const impuestoLinea = (baseImponible * tasaImpuesto) / 100;
+        // Calcular impuesto sobre base imponible
+        // IMPORTANTE: linea.impuesto es la TASA (porcentaje), no el monto
+        const tasaImpuesto = linea.impuesto || 0;
+        const impuestoLinea = tasaImpuesto > 0 ? (baseImponible * tasaImpuesto) / 100 : 0;
 
         subtotalFinal += baseImponible;
         impuestoTotal += impuestoLinea;
 
-        // Actualizar línea (resetear descuento global, mantener descuento de línea)
+        // Actualizar línea (resetear descuento global)
+        // NO modificamos el campo impuesto (mantiene la tasa original)
         await PreFacturaProducto.updateOne({ id: linea.id })
           .set({
-            descuentoMonto: 0, // Solo descuento de línea
-            impuesto: round(impuestoLinea),
+            descuentoMonto: 0,
             descuentoTipo: null,
             descuentoValor: null
+            // impuesto: NO SE MODIFICA, mantiene la tasa original
           })
           .usingConnection(db);
       }

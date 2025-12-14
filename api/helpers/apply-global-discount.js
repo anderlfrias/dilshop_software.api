@@ -232,7 +232,9 @@ module.exports = {
         const baseImponibleFinal = linea.baseImponibleLinea - descuentoGlobalLinea;
 
         // Calcular impuesto sobre la base imponible final
-        const impuestoLinea = (baseImponibleFinal * linea.impuesto) / 100;
+        // IMPORTANTE: linea.impuesto es la TASA (porcentaje), no el monto
+        const tasaImpuesto = linea.impuesto || 0;
+        const impuestoLinea = tasaImpuesto > 0 ? (baseImponibleFinal * tasaImpuesto) / 100 : 0;
 
         // Acumular totales
         subtotalFinal += baseImponibleFinal;
@@ -244,8 +246,8 @@ module.exports = {
 
         return {
           id: linea.id,
-          descuentoMonto: round(linea.descuentoLineaSolo + descuentoGlobalLinea),
-          impuesto: round(impuestoLinea)
+          descuentoMonto: round(linea.descuentoLineaSolo + descuentoGlobalLinea)
+          // NO retornamos impuesto porque no lo vamos a actualizar
         };
       });
 
@@ -260,14 +262,14 @@ module.exports = {
       // PERSISTIR CAMBIOS
       // ============================================================
 
-      // Actualizar cada línea
+      // Actualizar cada línea (solo descuento, NO impuesto)
       for (const lineaActualizada of lineasActualizadas) {
         await PreFacturaProducto.updateOne({ id: lineaActualizada.id })
           .set({
             descuentoTipo: descuento.tipo,
             descuentoValor: descuento.valor,
-            descuentoMonto: lineaActualizada.descuentoMonto,
-            impuesto: lineaActualizada.impuesto
+            descuentoMonto: lineaActualizada.descuentoMonto
+            // impuesto: NO SE MODIFICA, mantiene la tasa original
           })
           .usingConnection(db);
       }
