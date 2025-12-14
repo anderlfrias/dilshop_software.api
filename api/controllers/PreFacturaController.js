@@ -263,9 +263,6 @@ module.exports = {
           pfp.costo,
           pfp.impuesto,
           pfp.deleted,
-          pfp.descuentoTipo,
-          pfp.descuentoValor,
-          pfp.descuentoMonto,
           p.codigo AS producto_codigo,
           p.id AS producto_productoId,
           (pfp.cantidad * pfp.precio) AS subtotal,
@@ -293,14 +290,6 @@ module.exports = {
         comentario: result.rows[0].comentario,
         registroCajaId: result.rows[0].registroCajaId,
         deleted: result.rows[0].deleted,
-        // Campos de descuento global
-        descuentoGlobalTipo: result.rows[0].descuentoGlobalTipo || null,
-        descuentoGlobalValor: result.rows[0].descuentoGlobalValor || null,
-        descuentoGlobalMonto: result.rows[0].descuentoGlobalMonto || 0,
-        // Totales calculados
-        subTotal: result.rows[0].subTotal || null,
-        impuesto: result.rows[0].impuesto || null,
-        total: result.rows[0].total || null,
         productos: result.rows
           .filter(row => row.producto_id)
           .filter(row => !row.deleted)
@@ -314,11 +303,6 @@ module.exports = {
             costo: row.costo,
             impuesto: row.impuesto,
             deleted: row.deleted,
-            // Campos de descuento por línea
-            descuentoTipo: row.descuentoTipo || null,
-            descuentoValor: row.descuentoValor || null,
-            descuentoMonto: row.descuentoMonto || 0,
-            // Cálculos
             subtotal: row.subtotal,
             itbis: row.itbis,
             totalSinImpuesto: row.totalSinImpuesto,
@@ -330,7 +314,7 @@ module.exports = {
     }
     catch (error) {
       // Generar log
-      const descripcion = `Ocurrio un error al obtener la pre-factura por id con detalle.\\n- Error: ${JSON.stringify(error, null, 2)}\\n- Params: ${req.params}`;
+      const descripcion = `Ocurrio un error al obtener la pre-factura por id con detalle.\n- Error: ${JSON.stringify(error, null, 2)}\n- Params: ${req.params}`;
       await sails.helpers.log({
         accion: 'GET',
         descripcion,
@@ -436,8 +420,6 @@ module.exports = {
     try {
       let preFacturaProducto = null;
       let productoEncontrado = null;
-      let preFacturaActualizada = null;
-
       await Producto.getDatastore().transaction(async (db, proceed) => {
 
         const preFactura = await PreFactura.findOne({ id: preFacturaId }).usingConnection(db);
@@ -446,7 +428,7 @@ module.exports = {
           return await proceed(new Error('La pre-factura no existe'));
         }
 
-        // Verificar si la prefactura no esta abierta
+        // verificar si la prefactura no esta abierta
         if (preFactura.estado !== 'Abierta') {
           return await proceed(new Error('La pre-factura no está disponible para agregar productos'));
         }
@@ -463,7 +445,6 @@ module.exports = {
           .set({ cantidad: cantidad })
           .usingConnection(db);
 
-        // Crear producto en PreFactura
         preFacturaProducto = {
           id: new objId().toString(),
           preFacturaId: preFacturaId,
@@ -475,93 +456,13 @@ module.exports = {
           nombre: productoEncontrado.nombre,
         };
 
-        await PreFacturaProducto.create(preFacturaProducto).usingConnection(db);
-
-        // ============================================================
-        // RECALCULAR DESCUENTOS SI EXISTE DESCUENTO GLOBAL
-        // ============================================================
-        const tieneDescuentoGlobal = preFactura.descuentoGlobalMonto && preFactura.descuentoGlobalMonto > 0;
-
-        if (tieneDescuentoGlobal) {
-          // Cargar todos los productos (incluyendo el recién agregado)
-          const todosLosProductos = await PreFacturaProducto.find({
-            preFacturaId: preFacturaId,
-            deleted: false
-          }).usingConnection(db);
-          console.log(todosLosProductos);
-
-          // Calcular subtotal base (sin descuentos)
-          let subtotalBase = 0;
-          for (const prod of todosLosProductos) {
-            subtotalBase += prod.precio * prod.cantidad;
-          }
-
-          // Calcular descuento global
-          let descuentoGlobalMonto = 0;
-          if (preFactura.descuentoGlobalTipo === 'PORCENTAJE') {
-            descuentoGlobalMonto = (subtotalBase * preFactura.descuentoGlobalValor) / 100;
-          } else {
-            descuentoGlobalMonto = preFactura.descuentoGlobalValor;
-          }
-
-          const round = (num) => Math.round(num * 100) / 100;
-          descuentoGlobalMonto = round(descuentoGlobalMonto);
-
-          // Prorratear descuento entre todos los productos
-          let subtotalFinal = 0;
-          let impuestoTotal = 0;
-          let descuentoAplicado = 0;
-
-          for (let i = 0; i < todosLosProductos.length; i++) {
-            const prod = todosLosProductos[i];
-            const subtotalProd = prod.precio * prod.cantidad;
-            const proporcion = subtotalBase > 0 ? subtotalProd / subtotalBase : 0;
-
-            // Prorratear descuento
-            let descuentoProd = descuentoGlobalMonto * proporcion;
-
-            // Ajustar último producto por redondeo
-            if (i === todosLosProductos.length - 1) {
-              descuentoProd = descuentoGlobalMonto - descuentoAplicado;
-            }
-
-            // Base imponible después de descuento
-            const baseImponible = subtotalProd - descuentoProd;
-
-            // Calcular impuesto DESPUÉS del descuento
-            // IMPORTANTE: prod.impuesto es la TASA (porcentaje), no el monto
-            const tasaImpuesto = prod.impuesto || 0;
-            const impuestoProd = tasaImpuesto > 0 ? (baseImponible * tasaImpuesto) / 100 : 0;
-
-            subtotalFinal += baseImponible;
-            impuestoTotal += impuestoProd;
-            descuentoAplicado += descuentoProd;
-
-            // Actualizar producto con descuento
-            // NO modificamos el campo impuesto (debe mantener la tasa original)
-            await PreFacturaProducto.updateOne({ id: prod.id })
-              .set({
-                descuentoTipo: preFactura.descuentoGlobalTipo,
-                descuentoValor: preFactura.descuentoGlobalValor,
-                descuentoMonto: round(descuentoProd)
-                // impuesto: NO SE MODIFICA, mantiene la tasa original
-              })
-              .usingConnection(db);
-          }
-
-          // Actualizar totales de PreFactura
-          preFacturaActualizada = await PreFactura.updateOne({ id: preFacturaId })
-            .set({
-              descuentoGlobalMonto: round(descuentoGlobalMonto),
-              subTotal: round(subtotalFinal),
-              impuesto: round(impuestoTotal),
-              total: round(subtotalFinal + impuestoTotal)
-            })
-            .usingConnection(db);
-        }
+        await PreFacturaProducto.create(preFacturaProducto).usingConnection(db).catch(err => {
+          sails.log.error(err);
+          return proceed(new Error('Ocurrió un error al agregar los producto'));
+        });
 
         // Generar log
-        const descripcion = `Se agrego el producto con ID ${productoEncontrado.id} a la pre-factura con ID ${preFacturaId}${tieneDescuentoGlobal ? ' (con recálculo de descuentos)' : ''}`;
+        const descripcion = `Se agrego el producto con ID ${productoEncontrado.id} a la pre-factura con ID ${preFacturaId}`;
         await sails.helpers.log({
           accion: 'POST',
           descripcion,
@@ -570,13 +471,11 @@ module.exports = {
           elementId: preFacturaProducto.id,
           success: true
         });
-
         return await proceed();
       });
 
-      // Preparar respuesta
-      const response = {
-        message: 'Producto agregado exitosamente',
+      return res.ok({
+        message: 'Producto agregados exitosamente',
         producto: {
           id: preFacturaProducto.id,
           codigo: productoEncontrado.codigo,
@@ -585,29 +484,16 @@ module.exports = {
           nombre: preFacturaProducto.nombre,
           precio: preFacturaProducto.precio,
           costo: preFacturaProducto.costo,
-          impuesto: productoEncontrado.idTipoImpuesto.porcentaje,
+          impuesto: productoEncontrado.idTipoImpuesto.porcentaje, // Using the percentage from idTipoImpuesto
           deleted: preFacturaProducto.deleted ? 1 : 0,
           subtotal: preFacturaProducto.precio * preFacturaProducto.cantidad,
           itbis: (preFacturaProducto.precio * preFacturaProducto.cantidad) * (productoEncontrado.idTipoImpuesto.porcentaje / 100),
           totalSinImpuesto: ((preFacturaProducto.precio * preFacturaProducto.cantidad) - ((preFacturaProducto.precio * preFacturaProducto.cantidad) * (productoEncontrado.idTipoImpuesto.porcentaje / 100))),
         }
-      };
-
-      // Si se recalcularon totales, incluirlos en la respuesta
-      if (preFacturaActualizada) {
-        response.preFacturaActualizada = {
-          subTotal: preFacturaActualizada.subTotal,
-          impuesto: preFacturaActualizada.impuesto,
-          total: preFacturaActualizada.total,
-          descuentoGlobalMonto: preFacturaActualizada.descuentoGlobalMonto
-        };
-      }
-
-      return res.ok(response);
-
+      });
     } catch (error) {
       // Generar log
-      const descripcion = `Ocurrio un error al agregar el producto a la pre-factura.\\n- Error: ${JSON.stringify(error, null, 2)}\\n- Body: ${JSON.stringify(req.body, null, 2)}`;
+      const descripcion = `Ocurrio un error al agregar el producto a la pre-factura.\n- Error: ${JSON.stringify(error, null, 2)}\n- Body: ${JSON.stringify(req.body, null, 2)}`;
       await sails.helpers.log({
         accion: 'POST',
         descripcion,
