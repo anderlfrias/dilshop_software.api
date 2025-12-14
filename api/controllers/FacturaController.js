@@ -414,59 +414,6 @@ module.exports = {
     const preFacturaId = req.params.prefacturaid;
 
     try {
-      // ============================================================
-      // VALIDACIONES Y CARGA DE DATOS (FUERA DE TRANSACCIÓN)
-      // ============================================================
-
-      if (!req.body.registroCajaId) {
-        return res.badRequest({ err: 'El registro de caja es requerido' });
-      }
-
-      // Cargar PreFactura con validación
-      const preFacturaData = await PreFactura.findOne({
-        id: preFacturaId,
-        deleted: false
-      });
-
-      if (!preFacturaData) {
-        return res.badRequest({ err: 'La PreFactura no existe' });
-      }
-
-      // Cargar productos UNA SOLA VEZ (optimización)
-      const productosPreFactura = await PreFacturaProducto.find({
-        preFacturaId: preFacturaId,
-        deleted: false
-      });
-
-      if (!productosPreFactura || productosPreFactura.length === 0) {
-        return res.badRequest({ err: 'La PreFactura no tiene productos' });
-      }
-
-      // ============================================================
-      // CALCULAR TOTALES DESDE LOS PRODUCTOS
-      // ============================================================
-      const round = (num) => Math.round(num * 100) / 100;
-
-      let subtotalCalculado = 0;
-      let impuestoCalculado = 0;
-
-      for (const producto of productosPreFactura) {
-        const subtotalLinea = producto.precio * producto.cantidad;
-        const descuentoLinea = producto.descuentoMonto || 0;
-        const baseImponible = subtotalLinea - descuentoLinea;
-        const impuestoLinea = producto.impuesto || 0;
-
-        subtotalCalculado += baseImponible;
-        impuestoCalculado += impuestoLinea;
-      }
-
-      subtotalCalculado = round(subtotalCalculado);
-      impuestoCalculado = round(impuestoCalculado);
-      const totalCalculado = round(subtotalCalculado + impuestoCalculado + (req.body.delivery || 0));
-
-      // ============================================================
-      // PREPARAR OBJETO FACTURA
-      // ============================================================
       const factura = {
         id: new objId().toString(),
         fecha: new Date(),
@@ -478,31 +425,27 @@ module.exports = {
         tipoFactura: req.body.tipoFactura || '',
         clienteRNC: req.body.clienteRNC || '',
         pagos: req.body.pagos || [],
-        subTotal: subtotalCalculado,
-        impuesto: impuestoCalculado,
-        total: totalCalculado,
+        subTotal: req.body.subTotal || 0,
+        total: req.body.total || 0,
         delivery: req.body.delivery || 0,
+        impuesto: req.body.impuesto || 0,
         isCredit: req.body.isCredit || false,
-        descuentoGlobalTipo: preFacturaData.descuentoGlobalTipo || null,
-        descuentoGlobalValor: preFacturaData.descuentoGlobalValor || null,
-        descuentoGlobalMonto: preFacturaData.descuentoGlobalMonto || 0,
       };
 
-      facturaId = factura.id;
+      if (!factura.registroCajaId) {
+        return res.badRequest({ err: 'El registro de caja es requerido' });
+      }
 
-      // ============================================================
-      // TRANSACCIÓN (solo operaciones de escritura)
-      // ============================================================
       await Factura.getDatastore().transaction(async (db, proceed) => {
 
-        // Generar NCF si es requerido
         if (REQUIERE_NCF) {
+          // Generar NCF
           const tipoComprobante = TIPO_FACTURA_MAP[factura.tipoFactura];
 
           if (!tipoComprobante) {
             return await proceed(new Error('El tipo de comprobante no es válido'));
           }
-
+          // Construir la consulta SQL con el tipoComprobante como parte de la cadena de consulta
           const query = `
             SELECT * FROM ncf
             WHERE deleted = false AND estado = "abierto" AND tipoComprobante = $1
@@ -511,26 +454,27 @@ module.exports = {
             FOR UPDATE
           `;
 
+          // // Ejecutar la consulta
           await NCF.getDatastore().sendNativeQuery(query, [tipoComprobante]).usingConnection(db);
           const nextNcfResp = await sails.helpers.getNextNcf(tipoComprobante, db);
-
           if (nextNcfResp.success) {
             factura.ncf = nextNcfResp.ncf;
           } else {
             return await proceed(new Error(nextNcfResp.message));
           }
-        } else {
+        }
+
+        if (!REQUIERE_NCF) {
           factura.ncf = '';
         }
 
         // Crear CxC si es a crédito
         if (factura.isCredit) {
-          const cxcAbierta = await CxC.find({
-            clienteId: factura.clienteId,
-            estado: 'Pendiente'
-          }).usingConnection(db);
+          //Verificar si el cliente tiene una CxC abierta
+          const cxcAbierta = await CxC.find({ clienteId: factura.clienteId, estado: 'Pendiente' }).usingConnection(db);
 
           if (cxcAbierta.length > 0) {
+            // Verificar si la cxc excede el limite de credito
             const cliente = await Cliente.findOne({ id: factura.clienteId }).usingConnection(db);
             const restante = cxcAbierta[0].monto - cxcAbierta[0].totalAbonado;
 
@@ -538,15 +482,15 @@ module.exports = {
               return await proceed(new Error('El monto de la factura excede el límite de crédito del cliente'));
             }
 
-            const cxc = await CxC.updateOne({ id: cxcAbierta[0].id })
-              .set({ monto: cxcAbierta[0].monto + factura.total })
-              .usingConnection(db);
+            // Si tiene una CxC abierta, se le agrega el monto a la CxC
+            const cxc = await CxC.updateOne({ id: cxcAbierta[0].id }).set({ monto: cxcAbierta[0].monto + factura.total }).usingConnection(db);
 
             if (!cxc) {
               return await proceed(new Error('Ocurrió un error al editar la CxC'));
             }
             cxcId = cxc.id;
           } else {
+            // Si no tiene una CxC abierta, se crea una nueva
             const cxc = {
               id: new objId().toString(),
               clienteId: factura.clienteId,
@@ -556,51 +500,80 @@ module.exports = {
               estado: 'Pendiente',
             };
             const cxcCreada = await CxC.create(cxc).fetch().usingConnection(db);
-
             if (!cxcCreada) {
               return await proceed(new Error('Ocurrió un error al crear la CxC'));
             }
             cxcId = cxcCreada.id;
           }
 
+          // Editar la factura con el ID de la CxC si es a crédito
           factura.cxcId = cxcId;
         }
 
-        // Crear Factura
         const facturaCreada = await Factura.create(factura).fetch().usingConnection(db);
-
         if (!facturaCreada) {
-          return await proceed(new Error('No se pudo crear la factura'));
+          return res.serverError('No se pudo crear la factura');
         }
 
-        // Actualizar estado de PreFactura
-        const preFacturaActualizada = await PreFactura.updateOne({ id: preFacturaId })
-          .set({ estado: 'Completada' })
-          .usingConnection(db);
+        facturaId = factura.id;
+
+        if (!preFacturaId) {
+          return await proceed(new Error('El ID de la preFactura no está definido'));
+        }
+
+        if (!facturaId) {
+          return await proceed(new Error('El ID de la Factura no está definido'));
+        }
+
+        const facturaProducto = [];
+
+        // const factura = await Factura.findOne({ id: facturaId }).usingConnection(db);
+
+        if (!factura) {
+          return await proceed(new Error('La Factura no existe'));
+        }
+
+        const preFactura = await PreFactura.findOne({ id: preFacturaId }).usingConnection(db);
+        const preFacturaActualizada = await PreFactura.update({ id: preFacturaId }).set({ estado: 'Completada' }).usingConnection(db).fetch();
 
         if (!preFacturaActualizada) {
           return await proceed(new Error('No se pudo actualizar la preFactura'));
         }
 
-        // Preparar productos para FacturaProducto (reutilizando datos cargados)
-        const facturaProductos = productosPreFactura.map(producto => ({
-          id: new objId().toString(),
-          facturaId: facturaId,
-          productoId: producto.id,
-          cantidad: producto.cantidad,
-          precio: producto.precio,
-          costo: producto.costo,
-          impuesto: producto.impuesto,
-          nombre: producto.nombre,
-          descuentoTipo: producto.descuentoTipo || null,
-          descuentoValor: producto.descuentoValor || null,
-          descuentoMonto: producto.descuentoMonto || 0,
-        }));
+        if (!preFactura) {
+          return await proceed(new Error('La preFactura no existe'));
+        }
+        const productos = await PreFacturaProducto.find({ preFacturaId: preFacturaId, deleted: false }).usingConnection(db);
 
-        // Crear productos de factura en lote
-        await FacturaProducto.createEach(facturaProductos).usingConnection(db);
+        if (!productos) {
+          return await proceed(new Error('La preFactura no tiene productos'));
+        }
 
-        // Log de éxito
+        for (const producto of productos) {
+
+          facturaProducto.push({
+            id: new objId().toString(),
+            facturaId: facturaId,
+            productoId: producto.id,
+            cantidad: producto.cantidad,
+            precio: producto.precio,
+            costo: producto.costo,
+            impuesto: producto.impuesto,
+            nombre: producto.nombre,
+          });
+
+        }
+
+        if (!facturaId) {
+          return await proceed(new Error('El ID de la Factura no está definido'));
+        }
+
+        await FacturaProducto.createEach(facturaProducto).usingConnection(db).catch(err => {
+          sails.log.error(err);
+          return proceed(new Error(`Ocurrió un error al completar la factura`));
+        });
+
+        // General log
         const descripcion = `Se completó la factura con el ID: ${facturaId} y los datos: ${JSON.stringify(facturaCreada, null, 2)}`;
         await sails.helpers.log({
           accion: 'POST',
@@ -610,7 +583,7 @@ module.exports = {
           elementId: facturaId,
           success: true
         });
-
+        // Si todo está bien, confirma la transacción
         return await proceed();
       });
 

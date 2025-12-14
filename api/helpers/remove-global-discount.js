@@ -78,10 +78,8 @@ module.exports = {
         // Actualizar línea (resetear descuento global, mantener descuento de línea)
         await PreFacturaProducto.updateOne({ id: linea.id })
           .set({
-            descuentoMonto: 0, // Solo descuento de línea
-            impuesto: round(impuestoLinea),
-            descuentoTipo: null,
-            descuentoValor: null
+            descuentoMonto: round(descuentoLineaExistente), // Solo descuento de línea
+            impuesto: round(impuestoLinea)
           })
           .usingConnection(db);
       }
@@ -102,12 +100,12 @@ module.exports = {
         })
         .usingConnection(db);
 
-      // sails.log.info('Descuento global eliminado correctamente', {
-      //   preFacturaId,
-      //   subtotalFinal,
-      //   impuestoTotal,
-      //   totalFinal
-      // });
+      sails.log.info('Descuento global eliminado correctamente', {
+        preFacturaId,
+        subtotalFinal,
+        impuestoTotal,
+        totalFinal
+      });
     });
 
     const preFacturaCompleta = await PreFactura.findOne({ id: preFacturaId });
