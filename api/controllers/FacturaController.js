@@ -25,8 +25,14 @@ let browserPromise = null;
 const getBrowser = async () => {
   if (!browserPromise) {
     browserPromise = puppeteer.launch({
+      executablePath: '/usr/bin/chromium-browser',
       headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox'], // Mejora el rendimiento
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu'
+      ], // Mejora el rendimiento
     });
   }
   return browserPromise;
