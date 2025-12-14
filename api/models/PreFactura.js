@@ -8,7 +8,7 @@
 module.exports = {
 
   attributes: {
-    id: {
+    id : {
       type: 'string',
       required: true,
     },
@@ -27,7 +27,7 @@ module.exports = {
     },
     estado: {
       type: 'string',
-      isIn: ['Pendiente', 'Abierta', 'Cancelada', 'Completada'],
+      isIn : ['Pendiente', 'Abierta', 'Cancelada', 'Completada'],
       defaultsTo: 'Abierta',
     },
     comentario: {
@@ -42,41 +42,7 @@ module.exports = {
     deleted: {
       type: 'boolean',
       defaultsTo: false,
-    },
-    // Campos de descuento global (opcionales, backward-compatible)
-    descuentoGlobalTipo: {
-      type: 'string',
-      isIn: ['PORCENTAJE', 'MONTO'],
-      required: false,
-      allowNull: true,
-    },
-    descuentoGlobalValor: {
-      type: 'number',
-      required: false,
-      allowNull: true,
-    },
-    descuentoGlobalMonto: {
-      type: 'number',
-      required: false,
-      allowNull: true,
-      defaultsTo: 0,
-    },
-    // Totales calculados (opcionales)
-    // subTotal: {
-    //   type: 'number',
-    //   required: false,
-    //   allowNull: true,
-    // },
-    // impuesto: {
-    //   type: 'number',
-    //   required: false,
-    //   allowNull: true,
-    // },
-    // total: {
-    //   type: 'number',
-    //   required: false,
-    //   allowNull: true,
-    // }
+    }
   },
 };
 

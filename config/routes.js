@@ -149,10 +149,6 @@ module.exports.routes = {
   'GET /api/v1/prefactura/:id/imprimir': 'PreFacturaController.imprimir',
   'GET /api/v1/prefactura/abiertas/:userId': 'PreFacturaController.obtenerAbiertasPorUserId',
 
-  // Descuentos globales
-  'POST /api/v1/preFactura/:id/aplicar-descuento-global': 'PreFacturaController.aplicarDescuentoGlobal',
-  'DELETE /api/v1/preFactura/:id/eliminar-descuento-global': 'PreFacturaController.eliminarDescuentoGlobal',
-
   /***************************************************************************
    *                   Factura                                               *
    * *************************************************************************/

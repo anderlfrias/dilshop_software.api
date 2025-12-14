@@ -8,7 +8,7 @@
 module.exports = {
 
   attributes: {
-    id: {
+    id : {
       type: 'string',
       required: true,
     },
@@ -43,24 +43,6 @@ module.exports = {
     deleted: {
       type: 'boolean',
       defaultsTo: false,
-    },
-    // Campos de descuento por línea (opcionales, backward-compatible)
-    descuentoTipo: {
-      type: 'string',
-      isIn: ['PORCENTAJE', 'MONTO'],
-      required: false,
-      allowNull: true,
-    },
-    descuentoValor: {
-      type: 'number',
-      required: false,
-      allowNull: true,
-    },
-    descuentoMonto: {
-      type: 'number',
-      required: false,
-      allowNull: true,
-      defaultsTo: 0,
     }
 
   },
