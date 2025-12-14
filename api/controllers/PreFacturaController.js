@@ -288,6 +288,7 @@ module.exports = {
         mesaId: result.rows[0].mesaId,
         estado: result.rows[0].estado,
         comentario: result.rows[0].comentario,
+        descuento: result.rows[0].descuento,
         registroCajaId: result.rows[0].registroCajaId,
         deleted: result.rows[0].deleted,
         productos: result.rows
@@ -883,6 +884,161 @@ module.exports = {
         elementId: req.params.id,
         success: false
       });
+      return res.serverError(error);
+    }
+  },
+
+  /**
+   * Agregar descuento a PreFactura
+   * PUT /api/v1/preFactura/:id/descuento
+   */
+  agregarDescuento: async function (req, res) {
+    try {
+      const preFacturaId = req.params.id;
+      const { descuento } = req.body;
+
+      // Validar que se envió el descuento
+      if (descuento === undefined || descuento === null) {
+        return res.badRequest({ err: 'El monto de descuento es requerido' });
+      }
+
+      // Validar que el descuento sea un número válido
+      if (isNaN(descuento) || descuento < 0) {
+        return res.badRequest({ err: 'El descuento debe ser un número mayor o igual a 0' });
+      }
+
+      // Buscar la PreFactura
+      const preFactura = await PreFactura.findOne({ id: preFacturaId, deleted: false });
+
+      if (!preFactura) {
+        return res.notFound({ err: 'La PreFactura no existe' });
+      }
+
+      // Validar que esté en estado Abierta o Pendiente
+      if (preFactura.estado !== 'Abierta' && preFactura.estado !== 'Pendiente') {
+        return res.badRequest({
+          err: 'Solo se puede agregar descuento a PreFacturas en estado Abierta o Pendiente',
+          estado: preFactura.estado
+        });
+      }
+
+      // Calcular el total de la PreFactura desde los productos
+      const productos = await PreFacturaProducto.find({
+        preFacturaId: preFacturaId,
+        deleted: false
+      });
+
+      if (!productos || productos.length === 0) {
+        return res.badRequest({ err: 'La PreFactura no tiene productos' });
+      }
+
+      // Calcular total: suma de (precio × cantidad) de todos los productos
+      let totalPreFactura = 0;
+      for (const producto of productos) {
+        totalPreFactura += producto.precio * producto.cantidad;
+      }
+
+      // Validar que el descuento no sea mayor al total
+      if (descuento > totalPreFactura) {
+        return res.badRequest({
+          err: 'El descuento no puede ser mayor al total de la PreFactura',
+          descuento: descuento,
+          totalPreFactura: totalPreFactura
+        });
+      }
+
+      // Actualizar el descuento
+      const preFacturaActualizada = await PreFactura.updateOne({ id: preFacturaId })
+        .set({ descuento: descuento });
+
+      // Generar log
+      const descripcion = `Se agregó descuento de $${descuento} a la PreFactura ${preFacturaId} (Total: $${totalPreFactura})`;
+      await sails.helpers.log({
+        accion: 'PUT',
+        descripcion,
+        origen: 'PreFacturaController.agregarDescuento',
+        token: req.headers.authorization,
+        elementId: preFacturaId,
+        success: true
+      });
+
+      return res.ok({
+        message: 'Descuento agregado exitosamente',
+        preFactura: preFacturaActualizada,
+        totalPreFactura: totalPreFactura
+      });
+
+    } catch (error) {
+      // Generar log de error
+      const descripcion = `Error al agregar descuento a PreFactura ${req.params.id}.\n- Error: ${JSON.stringify(error, null, 2)}\n- Body: ${JSON.stringify(req.body, null, 2)}`;
+      await sails.helpers.log({
+        accion: 'PUT',
+        descripcion,
+        origen: 'PreFacturaController.agregarDescuento',
+        token: req.headers.authorization,
+        elementId: req.params.id,
+        success: false
+      });
+
+      return res.serverError(error);
+    }
+  },
+
+  /**
+   * Eliminar descuento de PreFactura
+   * DELETE /api/v1/preFactura/:id/descuento
+   */
+  eliminarDescuento: async function (req, res) {
+    try {
+      const preFacturaId = req.params.id;
+
+      // Buscar la PreFactura
+      const preFactura = await PreFactura.findOne({ id: preFacturaId, deleted: false });
+
+      if (!preFactura) {
+        return res.notFound({ err: 'La PreFactura no existe' });
+      }
+
+      // Validar que esté en estado Abierta o Pendiente
+      if (preFactura.estado !== 'Abierta' && preFactura.estado !== 'Pendiente') {
+        return res.badRequest({
+          err: 'Solo se puede eliminar descuento de PreFacturas en estado Abierta o Pendiente',
+          estado: preFactura.estado
+        });
+      }
+
+      // Eliminar el descuento (poner en null)
+      const preFacturaActualizada = await PreFactura.updateOne({ id: preFacturaId })
+        .set({ descuento: 0 });
+
+      // Generar log
+      const descripcion = `Se eliminó descuento de la PreFactura ${preFacturaId}`;
+      await sails.helpers.log({
+        accion: 'DELETE',
+        descripcion,
+        origen: 'PreFacturaController.eliminarDescuento',
+        token: req.headers.authorization,
+        elementId: preFacturaId,
+        success: true
+      });
+
+      return res.ok({
+        message: 'Descuento eliminado exitosamente',
+        preFactura: preFacturaActualizada
+      });
+
+    } catch (error) {
+      // Generar log de error
+      const descripcion = `Error al eliminar descuento de PreFactura ${req.params.id}.\n- Error: ${JSON.stringify(error, null, 2)}`;
+      await sails.helpers.log({
+        accion: 'DELETE',
+        descripcion,
+        origen: 'PreFacturaController.eliminarDescuento',
+        token: req.headers.authorization,
+        elementId: req.params.id,
+        success: false
+      });
+
       return res.serverError(error);
     }
   },

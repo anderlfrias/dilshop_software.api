@@ -9,7 +9,7 @@
 module.exports = {
 
   attributes: {
-    id : {
+    id: {
       type: 'string',
       required: true,
     },
@@ -33,7 +33,7 @@ module.exports = {
     },
     estado: {
       type: 'string',
-      isIn : ['Pendiente', 'Abierta', 'Cancelada', 'Completada'],
+      isIn: ['Pendiente', 'Abierta', 'Cancelada', 'Completada'],
       defaultsTo: 'Abierta',
     },
     registroCajaId: {
@@ -50,48 +50,53 @@ module.exports = {
     },
     tipoFactura: {
       type: 'string',
-      isIn : ['consumidores-finales', 'factura-credito-fiscal', 'regimen-especial', 'gubernamental'],
+      isIn: ['consumidores-finales', 'factura-credito-fiscal', 'regimen-especial', 'gubernamental'],
       required: false,
     },
     clienteRNC: {
       type: 'json',
       required: false,
     },
-    pagos : {
-      type : 'json',
-      required : false
+    pagos: {
+      type: 'json',
+      required: false
     },
-    total : {
-      type : 'number',
-      required : false
+    total: {
+      type: 'number',
+      required: false
     },
-    subTotal : {
-      type : 'number',
-      required : false
+    subTotal: {
+      type: 'number',
+      required: false
     },
-    impuesto : {
-      type : 'number',
-      required : false
+    impuesto: {
+      type: 'number',
+      required: false
     },
-    delivery : {
-      type : 'number',
-      required : false
+    delivery: {
+      type: 'number',
+      required: false
     },
-    isCredit : {
-      type : 'boolean',
-      required : false
+    isCredit: {
+      type: 'boolean',
+      required: false
     },
-    isCreditPayment : {
-      type : 'boolean',
-      required : false
+    isCreditPayment: {
+      type: 'boolean',
+      required: false
     },
-    cxcId : {
-      model : 'cxC',
-      required : false
+    cxcId: {
+      model: 'cxC',
+      required: false
     },
     ncf: {
       type: 'string',
       required: false,
+    },
+    descuento: {
+      type: 'number',
+      required: false,
+      allowNull: true,
     },
     idLote: {
       type: 'string',

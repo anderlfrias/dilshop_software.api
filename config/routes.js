@@ -149,6 +149,10 @@ module.exports.routes = {
   'GET /api/v1/prefactura/:id/imprimir': 'PreFacturaController.imprimir',
   'GET /api/v1/prefactura/abiertas/:userId': 'PreFacturaController.obtenerAbiertasPorUserId',
 
+  // Descuentos
+  'PUT /api/v1/preFactura/:id/descuento': 'PreFacturaController.agregarDescuento',
+  'DELETE /api/v1/preFactura/:id/descuento': 'PreFacturaController.eliminarDescuento',
+
   /***************************************************************************
    *                   Factura                                               *
    * *************************************************************************/

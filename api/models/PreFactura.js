@@ -8,7 +8,7 @@
 module.exports = {
 
   attributes: {
-    id : {
+    id: {
       type: 'string',
       required: true,
     },
@@ -27,7 +27,7 @@ module.exports = {
     },
     estado: {
       type: 'string',
-      isIn : ['Pendiente', 'Abierta', 'Cancelada', 'Completada'],
+      isIn: ['Pendiente', 'Abierta', 'Cancelada', 'Completada'],
       defaultsTo: 'Abierta',
     },
     comentario: {
@@ -38,6 +38,11 @@ module.exports = {
     registroCajaId: {
       model: 'registroCaja',
       required: false,
+    },
+    descuento: {
+      type: 'number',
+      required: false,
+      allowNull: true,
     },
     deleted: {
       type: 'boolean',

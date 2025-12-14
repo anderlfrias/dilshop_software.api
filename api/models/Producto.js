@@ -24,10 +24,12 @@ module.exports = {
     codigoExterno: {
       type: 'string',
       required: false,
+      allowNull: true,
     },
     descripcion: {
       type: 'string',
       required: false,
+      allowNull: true,
     },
     idTipoProducto: {
       model: 'TipoProducto',
