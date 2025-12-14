@@ -49,9 +49,9 @@ module.exports.datastores = {
     *                                                                          *
     ***************************************************************************/
     adapter: 'sails-mysql',
-    url: 'mysql://dilshop:12345@localhost:3306/dilshop_dev', // Base de datos de desarrollo
+    // url: 'mysql://dilshop:12345@localhost:3306/dilshop_dev', // Base de datos de desarrollo
 
-    // url: 'mysql://dilshop:DSh0p.141225@localhost:3306/dilshop_prod', // Base de datos de produccion
+    url: 'mysql://dilshop:DSh0p.141225@localhost:3306/dilshop_prod', // Base de datos de produccion
   },
   activity: {
     adapter: 'sails-mongo',
