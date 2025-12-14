@@ -284,13 +284,13 @@ module.exports = {
         })
         .usingConnection(db);
 
-      sails.log.info('Descuento global aplicado correctamente', {
-        preFacturaId,
-        descuento,
-        subtotalFinal,
-        impuestoTotal,
-        totalFinal
-      });
+      // sails.log.info('Descuento global aplicado correctamente', {
+      //   preFacturaId,
+      //   descuento,
+      //   subtotalFinal,
+      //   impuestoTotal,
+      //   totalFinal
+      // });
     });
 
     // Recargar con productos para retornar
