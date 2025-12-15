@@ -5,8 +5,6 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
-const objId = require('mongodb').ObjectID;
-
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const ejs = require('ejs');
@@ -17,7 +15,7 @@ module.exports = {
       let registroCajaCreada = {};
       await Caja.getDatastore().transaction(async (db, proceed) => {
         const registroCaja = {
-          id: new objId().toString(),
+          id: await sails.helpers.objectId(),
           cajaId: req.body.cajaId,
           fechaApertura: new Date(),
           efectivoInicial: req.body.efectivoInicial,

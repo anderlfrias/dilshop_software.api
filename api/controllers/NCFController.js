@@ -4,13 +4,12 @@
  * @description :: Server-side actions for handling incoming requests.
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
-const objId = require('mongodb').ObjectID;
 
 module.exports = {
-  crear: async function(req, res){
+  crear: async function (req, res) {
     try {
       const ncf = {
-        id: new objId().toString(),
+        id: await sails.helpers.objectId(),
         serie: req.body.serie,
         tipoComprobante: req.body.tipoComprobante,
         secuencialInicial: req.body.secuencialInicial,
@@ -81,7 +80,7 @@ module.exports = {
       return res.serverError(error);
     }
   },
-  listar: async function(req, res){
+  listar: async function (req, res) {
     try {
       const ncf = await NCF.find({ deleted: false })
         .sort([
@@ -106,7 +105,7 @@ module.exports = {
       return res.serverError(error);
     }
   },
-  obtenerPorId: async function(req, res){
+  obtenerPorId: async function (req, res) {
     try {
       const { id } = req.params;
 
@@ -134,7 +133,7 @@ module.exports = {
       return res.serverError(error);
     }
   },
-  eliminar: async function(req, res){
+  eliminar: async function (req, res) {
     try {
       const { id } = req.params;
 

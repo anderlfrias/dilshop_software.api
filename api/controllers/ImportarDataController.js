@@ -5,8 +5,6 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
-const objId = require('mongodb').ObjectID;
-
 const fs = require('fs');
 const { parse } = require('csv-parse');
 
@@ -41,7 +39,7 @@ module.exports = {
         return codigo;
       };
 
-      const getTipoImpuesto = async (tipoImpuesto, {db, proceed}) => {
+      const getTipoImpuesto = async (tipoImpuesto, { db, proceed }) => {
         if (tipoImpuesto === 'PRODUCTOS EXENTOS') {
           if (impuestos.find(impuesto => impuesto.porcentaje === 0)) {
             return impuestos.find(impuesto => impuesto.porcentaje === 0).id;
@@ -54,7 +52,7 @@ module.exports = {
           }
 
           const impuesto = await TipoImpuesto.create({
-            id: new objId().toString(),
+            id: await sails.helpers.objectId(),
             descripcion: 'Exentos',
             porcentaje: 0,
           }).fetch().usingConnection(db);
@@ -78,7 +76,7 @@ module.exports = {
         }
 
         const impuesto = await TipoImpuesto.create({
-          id: new objId().toString(),
+          id: await sails.helpers.objectId(),
           descripcion: 'Grabados con el 18%',
           porcentaje: 18,
         }).fetch().usingConnection(db);
@@ -90,7 +88,7 @@ module.exports = {
         return impuesto.id;
       };
 
-      const getSuplidorId = async (nombreSuplidor, {db, proceed}) => {
+      const getSuplidorId = async (nombreSuplidor, { db, proceed }) => {
         if (!nombreSuplidor || nombreSuplidor === 'NULL') {
           return null;
         }
@@ -104,7 +102,7 @@ module.exports = {
           suplidores = [...suplidores, { id: suplidorEncontrado[0].id, nombre: suplidorEncontrado[0].nombre }];
           return suplidorEncontrado[0].id;
         }
-        const suplidorCreado = await Suplidor.create({ id: new objId().toString(), nombre: nombreSuplidor }).fetch().usingConnection(db);
+        const suplidorCreado = await Suplidor.create({ id: await sails.helpers.objectId(), nombre: nombreSuplidor }).fetch().usingConnection(db);
 
         if (!suplidorCreado) {
           return proceed(new Error('Ocurrió un error al crear el suplidor'));
@@ -114,7 +112,7 @@ module.exports = {
         return suplidorCreado.id;
       };
 
-      const getMarcaId = async (nombreMarca, {db, proceed}) => {
+      const getMarcaId = async (nombreMarca, { db, proceed }) => {
         if (!nombreMarca || nombreMarca === 'NULL') {
           return null;
         }
@@ -129,7 +127,7 @@ module.exports = {
           marcas = [...marcas, { id: marcaEncontrada[0].id, nombre: marcaEncontrada[0].nombre }];
           return marcaEncontrada[0].id;
         }
-        const marcaCreada = await Marca.create({ id: new objId().toString(), nombre: nombreMarca }).fetch().usingConnection(db);
+        const marcaCreada = await Marca.create({ id: await sails.helpers.objectId(), nombre: nombreMarca }).fetch().usingConnection(db);
 
         if (!marcaCreada) {
           return proceed(new Error('Ocurrió un error al crear la marca'));
@@ -146,12 +144,12 @@ module.exports = {
             const element = productos[i];
             const producto = {
               ...element,
-              id: new objId().toString(),
+              id: await sails.helpers.objectId(),
               codigo: validarCodigo(element.codigo, productosCreados),
               medida: getMedida(element.medida),
-              idTipoImpuesto: await getTipoImpuesto(element.tipoImpuesto, {db, proceed}),
-              idSuplidor: await getSuplidorId(element.suplidor, {db, proceed}),
-              idMarca: await getMarcaId(element.marca, {db, proceed}),
+              idTipoImpuesto: await getTipoImpuesto(element.tipoImpuesto, { db, proceed }),
+              idSuplidor: await getSuplidorId(element.suplidor, { db, proceed }),
+              idMarca: await getMarcaId(element.marca, { db, proceed }),
             };
 
             const productoCreado = await Producto.create(producto).fetch().usingConnection(db);
@@ -183,7 +181,7 @@ module.exports = {
         let lineNumber = 1;
 
         fs.createReadStream(csvFilePath)
-          .pipe(parse ({ delimiter: ',' }))
+          .pipe(parse({ delimiter: ',' }))
           .on('data', (csvrow) => {
             if (csvrow.length !== 11) {
               console.error(`Invalid number of fields on line ${lineNumber}: ${csvrow}`);
@@ -221,7 +219,7 @@ module.exports = {
             productosToCreate = [...productosToCreate, producto];
             lineNumber++;
           })
-          .on('end', async() => {
+          .on('end', async () => {
             await createProductos(productosToCreate);
             return res.ok('Lectura del CSV completada');
           });
@@ -271,7 +269,7 @@ module.exports = {
             const element = clientes[i];
             const cliente = {
               ...element,
-              id: new objId().toString(),
+              id: await sails.helpers.objectId(),
               idCliente: null,
               contacto: false,
             };
@@ -306,7 +304,7 @@ module.exports = {
         let clientesToCreate = [];
 
         fs.createReadStream(csvFilePath)
-          .pipe(parse ({ delimiter: ',' }))
+          .pipe(parse({ delimiter: ',' }))
           .on('data', (csvrow) => {
             // console.log(csvrow);
 
@@ -338,7 +336,7 @@ module.exports = {
             // console.log(cliente);
             clientesToCreate = [...clientesToCreate, cliente];
           })
-          .on('end', async() => {
+          .on('end', async () => {
             const clientes = await crearClientes(clientesToCreate);
             return res.ok({
               clientes,

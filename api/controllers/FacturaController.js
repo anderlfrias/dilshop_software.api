@@ -5,7 +5,6 @@
  * @description :: Server-side actions for handling incoming requests.
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
-const objId = require('mongodb').ObjectID;
 
 const puppeteer = require('puppeteer');
 const fs = require('fs');
@@ -70,7 +69,7 @@ module.exports = {
   crear: async function (req, res) {
     try {
       const factura = {
-        id: new objId().toString(),
+        id: await sails.helpers.objectId(),
         fecha: req.body.fecha,
         clienteId: req.body.clienteId || null,
         mesaId: req.body.mesaId || null,
@@ -252,7 +251,7 @@ module.exports = {
           //   .usingConnection(db);
 
           facturaProducto.push({
-            id: new objId().toString(),
+            id: await sails.helpers.objectId(),
             facturaId: facturaId,
             productoId: producto.id,
             cantidad: producto.cantidad,
@@ -352,7 +351,7 @@ module.exports = {
           //   .usingConnection(db);
 
           facturaProducto.push({
-            id: new objId().toString(),
+            id: await sails.helpers.objectId(),
             facturaId: facturaId,
             productoId: producto.id,
             cantidad: producto.cantidad,
@@ -421,7 +420,7 @@ module.exports = {
 
     try {
       const factura = {
-        id: new objId().toString(),
+        id: await sails.helpers.objectId(),
         fecha: new Date(),
         clienteId: req.body.clienteId || null,
         mesaId: req.body.mesaId || null,
@@ -498,7 +497,7 @@ module.exports = {
           } else {
             // Si no tiene una CxC abierta, se crea una nueva
             const cxc = {
-              id: new objId().toString(),
+              id: await sails.helpers.objectId(),
               clienteId: factura.clienteId,
               monto: factura.total,
               fecha: factura.fecha,
@@ -558,7 +557,7 @@ module.exports = {
         for (const producto of productos) {
 
           facturaProducto.push({
-            id: new objId().toString(),
+            id: await sails.helpers.objectId(),
             facturaId: facturaId,
             productoId: producto.id,
             cantidad: producto.cantidad,
@@ -616,7 +615,7 @@ module.exports = {
   cobroFactura: async function (req, res) {
     try {
       const factura = {
-        id: new objId().toString(),
+        id: await sails.helpers.objectId(),
         fecha: new Date(),
         clienteId: req.body.clienteId || null,
         mesaId: req.body.mesaId || null,
@@ -720,7 +719,7 @@ module.exports = {
   },
   cobroFacturaLote: async function (req, res) {
     try {
-      const idLote = new objId().toString();
+      const idLote = await sails.helpers.objectId();
       const datos = req.body;
 
       if (!datos) {
@@ -767,7 +766,7 @@ module.exports = {
         }
 
         facturasACrear.push({
-          id: new objId().toString(),
+          id: await sails.helpers.objectId(),
           fecha: new Date(),
           clienteId: cxc.clienteId,
           mesaId: null,

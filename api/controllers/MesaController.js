@@ -5,26 +5,24 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
-const objId = require('mongodb').ObjectID;
-
 module.exports = {
-  crear : async function(req, res){
-    try{
+  crear: async function (req, res) {
+    try {
       const mesa = {
-        id: new objId().toString(),
+        id: await sails.helpers.objectId(),
         nombre: req.body.nombre,
         ubicacion: req.body.ubicacion,
-        disponible: req.body.disponible ||   true,
+        disponible: req.body.disponible || true,
         estado: req.body.estado || 'disponible',
       };
 
-      if(!mesa.nombre){
-        return res.badRequest({err: 'El nombre es requerido'});
+      if (!mesa.nombre) {
+        return res.badRequest({ err: 'El nombre es requerido' });
       }
 
       const mesaCreada = await Mesa.create(mesa).fetch();
 
-      if(mesaCreada){
+      if (mesaCreada) {
         // Generar log
         const descripcion = `Se creo una mesa con los siguientes datos:\n${JSON.stringify(mesaCreada, null, 2)}`;
         await sails.helpers.log({
@@ -36,11 +34,11 @@ module.exports = {
           success: true
         });
         return res.ok(mesaCreada);
-      }else{
+      } else {
         throw new Error('Ocurrio un error al crear la mesa');
       }
 
-    }catch(err){
+    } catch (err) {
       // Generar log
       const descripcion = `Ocurrio un error al crear la mesa.\n- Error: ${JSON.stringify(err, null, 2)}\n- Body: ${JSON.stringify(req.body, null, 2)}`;
       await sails.helpers.log({
@@ -55,21 +53,21 @@ module.exports = {
       return res.serverError(err);
     }
   },
-  listar : async function(req, res){
-    try{
+  listar: async function (req, res) {
+    try {
       const filter = req.query.filter || '';
       const mesas = await Mesa.find(
         {
           deleted: false,
           or: [
-            {nombre: {contains: filter}},
-            {ubicacion: {contains: filter}}
+            { nombre: { contains: filter } },
+            { ubicacion: { contains: filter } }
           ]
         }
       )
-      .meta({makeLikeModifierCaseInsensitive: true});
+        .meta({ makeLikeModifierCaseInsensitive: true });
       return res.ok(mesas);
-    }catch(err){
+    } catch (err) {
       // Generar log
       const descripcion = `Ocurrio un error al listar las mesas.\n- Error: ${JSON.stringify(err, null, 2)}`;
       await sails.helpers.log({
@@ -84,20 +82,20 @@ module.exports = {
       return res.serverError(err);
     }
   },
-  obtenerPorId : async function(req, res){
-    try{
+  obtenerPorId: async function (req, res) {
+    try {
       const id = req.params.id;
 
-      if(!id){
-        return res.badRequest({err: 'El id es requerido'});
+      if (!id) {
+        return res.badRequest({ err: 'El id es requerido' });
       }
 
-      const mesa = await Mesa.findOne({id: id, deleted: false});
-      if(!mesa){
-        return res.badRequest({err: 'No existe la mesa'});
+      const mesa = await Mesa.findOne({ id: id, deleted: false });
+      if (!mesa) {
+        return res.badRequest({ err: 'No existe la mesa' });
       }
       return res.ok(mesa);
-    }catch(err){
+    } catch (err) {
       // Generar log
       const descripcion = `Ocurrio un error al obtener la mesa por id.\n- Error: ${JSON.stringify(err, null, 2)}`;
       await sails.helpers.log({
@@ -111,8 +109,8 @@ module.exports = {
       return res.serverError(err);
     }
   },
-  actualizar : async function(req, res){
-    try{
+  actualizar: async function (req, res) {
+    try {
       const id = req.params.id;
       const mesa = {
         nombre: req.body.nombre,
@@ -120,25 +118,25 @@ module.exports = {
         disponible: req.body.disponible,
       };
 
-      if(!id){
-        return res.badRequest({err: 'El id es requerido'});
+      if (!id) {
+        return res.badRequest({ err: 'El id es requerido' });
       }
 
-      if(!mesa.nombre){
-        return res.badRequest({err: 'El nombre es requerido'});
+      if (!mesa.nombre) {
+        return res.badRequest({ err: 'El nombre es requerido' });
       }
 
-      const mesaDesactualizada = await Mesa.findOne({id: id, deleted: false});
+      const mesaDesactualizada = await Mesa.findOne({ id: id, deleted: false });
 
-      if(!mesaDesactualizada){
-        return res.badRequest({err: 'No existe la mesa'});
+      if (!mesaDesactualizada) {
+        return res.badRequest({ err: 'No existe la mesa' });
       }
 
-      const mesaActualizada = await Mesa.updateOne({id: id, deleted: false})
-      .set(mesa);
+      const mesaActualizada = await Mesa.updateOne({ id: id, deleted: false })
+        .set(mesa);
 
-      if(!mesaActualizada){
-        return res.badRequest({err: 'No existe la mesa'});
+      if (!mesaActualizada) {
+        return res.badRequest({ err: 'No existe la mesa' });
       }
 
       // Generar log
@@ -153,7 +151,7 @@ module.exports = {
       });
 
       return res.ok(mesaActualizada);
-    }catch(err){
+    } catch (err) {
       // Generar log
       const descripcion = `Ocurrio un error al actualizar la mesa.\n- Error: ${JSON.stringify(err, null, 2)}\n- Body: ${JSON.stringify(req.body, null, 2)}`;
       await sails.helpers.log({
@@ -168,7 +166,7 @@ module.exports = {
       return res.serverError(err);
     }
   },
-  cambiarEstado: async function(req, res) {
+  cambiarEstado: async function (req, res) {
     const { id, estado } = req.allParams();
     try {
       if (!id || !estado) {
@@ -213,19 +211,19 @@ module.exports = {
       res.serverError(error);
     }
   },
-  eliminar : async function(req, res){
-    try{
+  eliminar: async function (req, res) {
+    try {
       const id = req.params.id;
 
-      if(!id){
-        return res.badRequest({err: 'El id es requerido'});
+      if (!id) {
+        return res.badRequest({ err: 'El id es requerido' });
       }
 
-      const mesaEliminada = await Mesa.updateOne({id: id})
-      .set({deleted: true});
+      const mesaEliminada = await Mesa.updateOne({ id: id })
+        .set({ deleted: true });
 
-      if(!mesaEliminada){
-        return res.badRequest({err: 'No existe la mesa'});
+      if (!mesaEliminada) {
+        return res.badRequest({ err: 'No existe la mesa' });
       }
 
       // Generar log
@@ -240,7 +238,7 @@ module.exports = {
       });
 
       return res.ok(mesaEliminada);
-    }catch(err){
+    } catch (err) {
       // Generar log
       const descripcion = `Ocurrio un error al eliminar la mesa.\n- Error: ${JSON.stringify(err, null, 2)}\n - Params: ${req.params}`;
       await sails.helpers.log({

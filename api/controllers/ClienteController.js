@@ -4,13 +4,12 @@
  * @description :: Server-side actions for handling incoming requests.
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
-const objId = require('mongodb').ObjectID;
 
 module.exports = {
   crear: async function (req, res) {
     try {
       const cliente = {
-        id: new objId().toString(),
+        id: await sails.helpers.objectId(),
         codigoExterno: req.body.codigoExterno,
         nombre: req.body.nombre,
         apellido: req.body.apellido,
@@ -32,7 +31,7 @@ module.exports = {
       if (cliente.limiteCredito === '' || cliente.limiteCredito === null || cliente.limiteCredito === undefined) {
         cliente.limiteCredito = 0;
       }
-      if(cliente.condicionCredito === '' || cliente.condicionCredito === null || cliente.condicionCredito === undefined){
+      if (cliente.condicionCredito === '' || cliente.condicionCredito === null || cliente.condicionCredito === undefined) {
         cliente.condicionCredito = 0;
       }
       if (!cliente.nombre) {
@@ -99,10 +98,10 @@ module.exports = {
         ]
       })
         .populate('idCliente')
-        .meta({ makeLikeModifierCaseInsensitive: true,  })
+        .meta({ makeLikeModifierCaseInsensitive: true, })
         .sort([{ nombre: 'ASC' }])
         .limit(top)
-        .skip(page*top);
+        .skip(page * top);
 
       return res.ok({ clientes, cantidadClientes });
     }
@@ -145,10 +144,10 @@ module.exports = {
           deleted: false
         })
         .populate('idCliente')
-        .meta({ makeLikeModifierCaseInsensitive: true,  })
+        .meta({ makeLikeModifierCaseInsensitive: true, })
         .sort([{ nombre: 'ASC' }])
         .limit(top)
-        .skip(page*top);
+        .skip(page * top);
 
       return res.ok({ clientes, cantidadClientes });
     }
@@ -224,7 +223,7 @@ module.exports = {
       if (cliente.limiteCredito === '' || cliente.limiteCredito === null || cliente.limiteCredito === undefined) {
         cliente.limiteCredito = 0;
       }
-      if(cliente.condicionCredito === '' || cliente.condicionCredito === null || cliente.condicionCredito === undefined){
+      if (cliente.condicionCredito === '' || cliente.condicionCredito === null || cliente.condicionCredito === undefined) {
         cliente.condicionCredito = 0;
       }
 

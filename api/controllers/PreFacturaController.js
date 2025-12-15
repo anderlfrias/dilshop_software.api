@@ -6,7 +6,6 @@
  * @description :: Server-side actions for handling incoming requests.
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
-const objId = require('mongodb').ObjectID;
 
 const puppeteer = require('puppeteer');
 const fs = require('fs');
@@ -30,7 +29,7 @@ module.exports = {
   crear: async function (req, res) {
     try {
       const preFactura = {
-        id: new objId().toString(),
+        id: await sails.helpers.objectId(),
         fecha: new Date(),
         clienteId: req.body.clienteId || null,
         mesaId: req.body.mesaId || null,
@@ -447,7 +446,7 @@ module.exports = {
           .usingConnection(db);
 
         preFacturaProducto = {
-          id: new objId().toString(),
+          id: await sails.helpers.objectId(),
           preFacturaId: preFacturaId,
           productoId: producto.id,
           cantidad: producto.cantidad,
@@ -552,7 +551,7 @@ module.exports = {
             .usingConnection(db);
 
           preFacturaProducto.push({
-            id: new objId().toString(),
+            id: await sails.helpers.objectId(),
             preFacturaId: preFacturaId,
             productoId: producto.id,
             cantidad: producto.cantidad,

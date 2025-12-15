@@ -5,12 +5,11 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
-const objId = require('mongodb').ObjectID;
 module.exports = {
   crear: async function (req, res) {
     try {
       const tipoImpuesto = {
-        id: new objId().toString(),
+        id: await sails.helpers.objectId(),
         descripcion: req.body.descripcion,
         porcentaje: req.body.porcentaje,
       };
@@ -118,7 +117,7 @@ module.exports = {
         return res.badRequest({ err: 'El porcentaje es requerido' });
       }
 
-      const impuestoDesactualizado = await TipoImpuesto.findOne({ id: req.params.id , deleted: false});
+      const impuestoDesactualizado = await TipoImpuesto.findOne({ id: req.params.id, deleted: false });
 
       if (!impuestoDesactualizado) {
         return res.badRequest({ err: 'No existe el tipo de impuesto' });

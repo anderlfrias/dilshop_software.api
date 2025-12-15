@@ -5,13 +5,11 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
-const objId = require('mongodb').ObjectID;
-
 module.exports = {
   crear: async function (req, res) {
     try {
       const caja = {
-        id: new objId().toString(),
+        id: await sails.helpers.objectId(),
         nombre: req.body.nombre,
         ubicacion: req.body.ubicacion,
         disponible: req.body.disponible,
@@ -62,7 +60,7 @@ module.exports = {
           ]
         }
       )
-      .meta({ makeLikeModifierCaseInsensitive: true });
+        .meta({ makeLikeModifierCaseInsensitive: true });
       return res.ok(cajas);
     } catch (err) {
       return res.serverError(err);
